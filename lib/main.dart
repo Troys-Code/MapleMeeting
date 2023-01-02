@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
           walk1_(facialExpression: 'default');
           break;
         case "jump_":
-          jump_(facialExpression: 'default');
+          jump();
           break;
         default:
           stand1_(facialExpression: 'default');
@@ -176,31 +176,25 @@ class _HomePageState extends State<HomePage> {
       boyDirection = 'right';
     });
   }
-  void jump_({String facialExpression = "default"}){
-      setState(() {
-        charAction = "jump_";
-        action_jump_SpriteCount++;
-        if (action_jump_SpriteCount >= 1) {
-          action_jump_SpriteCount = -1;
-        }
-      });
-  }
-  void jump() {
+
+  void jump({double jumpHeight = 3.5}) {
     double time = 0;
-    double height = 1;
+    double height = 0;
     double initialHeight = charPosY;
-    double jumpVelocity = -0.05;
-    Timer.periodic(Duration(microseconds: 100), (timer) {
-      time -= 0.699;
-      height = jumpVelocity * time;
-      print('charPosY: $charPosY');
+    print('initial height: $initialHeight\n');
+    Timer.periodic(Duration(milliseconds: 60), (timer) {
+      time += 0.05;
+      height = -4.9 * time * time + jumpHeight * time;
+      print('charPosY: $charPosY\n');
 
       setState(() {
-        if (charPosY > 0.2) {
-          charPosY = initialHeight - height;
-        } else {
+        if (initialHeight - height > 1) {
           charPosY = 1;
           timer.cancel();
+          moonlightThiefSpriteCount = 0;
+        } else {
+          charPosY = initialHeight - height;
+          moonlightThiefSpriteCount = 1;
         }
       });
     });
@@ -281,7 +275,7 @@ class _HomePageState extends State<HomePage> {
                       MyButton(
                         text: '↑',
                         function: () {
-                          jump_();
+                          jump();
                           },
                       ),
                       // MyButton(

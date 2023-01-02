@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 class MyButton extends StatelessWidget {
   final text;
   final function;
-  //final cancelFunction;
-
   MyButton({required this.text, required this.function,});
 
   @override

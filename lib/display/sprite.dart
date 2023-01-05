@@ -3,14 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class MySprite extends StatelessWidget {
-  final int frameImgNumber;
-  final int spriteImgHeight, spriteImgWidth;
-  final String spriteDirection;
   final String imagePath;
+  final String spriteDirection;
   const MySprite({
-        required this.imagePath,
-        required this.spriteDirection, required this.frameImgNumber,
-        required this.spriteImgHeight, required this.spriteImgWidth,
+    required this.imagePath, required this.spriteDirection,
       });
   // imagePath = example('assets/teddy/teddy$frameImgNumber.png')
   @override

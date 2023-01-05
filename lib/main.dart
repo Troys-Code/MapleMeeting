@@ -1,19 +1,28 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:maple_meeting/display/sprite.dart';
-import 'MapleCharacter.dart';
-import 'button.dart';
+import 'Buttons/button.dart';
+import 'Buttons/holdDownButton.dart';
+import 'package:maple_meeting/player.dart';
 
 main() {
   runApp(MyApp());
 }
-
+/// TODO #1 FEATURE IN CHAT /commands to do things
+/// ~ like setup a timer race from end to end of screen to settle args
+///
+/// KEEP IT SIMPLE : DUMMY USER : Requires -> fewest clicks, easiest to understand and find
+///
+/// UI DESIGN
+/// ~ [DIRECTION BUTTONS]  [[ UP : JUMP() ]], [[ LEFT : MOVELEFT() ]], [[ RIGHT : MOVERIGHT() ]]
+/// ~ [ICON BUTTON] : Opens a bunch of {EMOTION Icons} possibly in a snackbar
+///
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: HomePage(),
     );
@@ -28,10 +37,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  //TEDDY BEAK
-  int teddySpriteCount = 0;
-  double teddyPosX = 0;
-  String teddyDirection = 'right';
+  @override
+  void initState() {
+    super.initState();
+    playNow();
+  }
 
   //MOONLIGHT THIEF
   int moonlightThiefSpriteCount = 0;
@@ -39,16 +49,15 @@ class _HomePageState extends State<HomePage> {
   String moonlightThiefDirection = 'left';
 
   //BOY CHARACTER
-  int boySpriteCount = 0;
+  int charActionCurrentImageNum = 0; // Current image for that action
+  int charActionFrameImageCount = 4; // Number of images for that action: stand TODO STAND COUNT
+  int movementSpeedMultiplier = 1;
   double boyPosX = -0.5;
   double charPosY = 1.0;
   String boyDirection = 'left';
-
-  int action_stand1_SpriteCount = 0;
-  int action_walk1_SpriteCount = 0;
-  int action_jump_SpriteCount = 0;
-
   String facialExpression = "default";
+  String charAction = "stand1_";
+  bool inAir = false;
 
   //LOADING SCREEN
   Color hide = Colors.transparent;
@@ -58,26 +67,17 @@ class _HomePageState extends State<HomePage> {
 
   bool gameHasStarted = false;
 
-  String charAction = "stand1_";
+  /// Settings Page content
+  bool enableHaptic = false;
+
   Future<void> runForeverAnimateCharacter() async {
-    while (true) {
-      switch(charAction){
-        case "stand1_":
-          stand1_(facialExpression: 'default');
-          break;
-        case "walk_":
-          walk1_(facialExpression: 'default');
-          break;
-        case "jump_":
-          jump();
-          break;
-        default:
-          stand1_(facialExpression: 'default');
-          break;
+    while (true) { // Cycle through each animations frames from 0 - (framecount - 1) using mod trick
+      charActionCurrentImageNum++;
+      charActionCurrentImageNum %= charActionFrameImageCount;
+      if( charActionCurrentImageNum > charActionFrameImageCount) {
+        charActionCurrentImageNum = 0;
       }
-      // Pause the function for less than a second
-      //print('charAction: $charAction\n');
-      await Future.delayed(Duration(milliseconds: 369));
+      await Future.delayed(Duration(milliseconds: 1));
     }
   }
 
@@ -110,103 +110,108 @@ class _HomePageState extends State<HomePage> {
       });
     });
   }
-  void moveTeddy() {
-    Timer.periodic(Duration(milliseconds: 100), (timer) {
-      setState(() {
-        teddySpriteCount++;
 
-        if (teddySpriteCount == 24) {
-          teddySpriteCount = 0;
-        }
-        if ((teddyPosX - boyPosX).abs() > 0.3) {
-          if (boyDirection == 'right') {
-            teddyPosX = boyPosX + 0.3;
-          } else if (boyDirection == 'left') {
-            teddyPosX = boyPosX - 0.3;
-          }
-        }
-
-        if (teddyPosX - boyPosX > 0) {
-          teddyDirection = 'left';
-        } else {
-          teddyDirection = 'right';
-        }
-      });
-    });
-  }
+  // void moveTeddy() { // Follows you
+  //   Timer.periodic(Duration(milliseconds: 100), (timer) {
+  //     setState(() {
+  //       teddySpriteCount++;
+  //
+  //       if (teddySpriteCount == 24) {
+  //         teddySpriteCount = 0;
+  //       }
+  //       if ((teddyPosX - boyPosX).abs() > 0.3) {
+  //         if (boyDirection == 'right') {
+  //           teddyPosX = boyPosX + 0.3;
+  //         } else if (boyDirection == 'left') {
+  //           teddyPosX = boyPosX - 0.3;
+  //         }
+  //       }
+  //
+  //       if (teddyPosX - boyPosX > 0) {
+  //         teddyDirection = 'left';
+  //       } else {
+  //         teddyDirection = 'right';
+  //       }
+  //     });
+  //   });
+  // }
 
   // Changes which from is being displayed of stand1_# from 0 to n-1
-  void stand1_({String facialExpression = "default"}){
-    Timer.periodic(Duration(milliseconds: 100), (timer) {
-      setState(() {
-        charAction = "stand1_";
-        action_stand1_SpriteCount++;
-      });
-      if (action_stand1_SpriteCount >= 3) {
-        action_stand1_SpriteCount = -1;
-      }
-      timer.cancel();
-    });
+  void stand1() {
+    inAir = false;
+    charActionFrameImageCount = 4;
+    charAction = 'stand1_';
+    //print('Image Count: $charActionFrameImageCount \t img#: $charActionCurrentImageNum\n');
   }
-  void walk1_({String facialExpression = "default"}){
-    Timer.periodic(Duration(milliseconds: 100), (timer) {
 
-      setState(() {
+  void moveLeft() {
+      if(!inAir){
+        charActionFrameImageCount = 5;
         charAction = "walk1_";
-        action_walk1_SpriteCount++;
-      });
-      if (action_walk1_SpriteCount >= 4) {
-        action_walk1_SpriteCount = -1;
+        boyPosX -= 0.001975 * movementSpeedMultiplier;
       }
-
-      timer.cancel();
-    });
-  }
-  void walkLeft({String facialExpression = "default"}) {
-    setState(() {
-      charAction = "walk1_";
-      boyPosX -= 0.0175;
+      else { // Mid air needs higher posX change for smoother movement physics
+        boyPosX -= 0.005 * movementSpeedMultiplier;
+      }
+      //print('Image Count: $charActionFrameImageCount \t img#: $charActionCurrentImageNum\n');
       boyDirection = 'left';
-    });
+      setState(() {});
   }
-  void walkRight({String facialExpression = "default"}) {
-    setState(() {
+
+  void moveRight() {
+    if(!inAir){
+      charActionFrameImageCount = 5;
       charAction = "walk1_";
-      boyPosX += 0.0175;
-      boyDirection = 'right';
-    });
+      boyPosX += 0.001975 * movementSpeedMultiplier;
+    }
+    else { // Mid air needs higher posX change for smoother movement physics
+      boyPosX += 0.005 * movementSpeedMultiplier;
+    }
+    //print('Image Count: $charActionFrameImageCount \t img#: $charActionCurrentImageNum\n');
+    boyDirection = 'right';
+    setState(() {});
   }
 
-  void jump({double jumpHeight = 3.5}) {
-    double time = 0;
-    double height = 0;
-    double initialHeight = charPosY;
-    print('initial height: $initialHeight\n');
-    Timer.periodic(Duration(milliseconds: 60), (timer) {
-      time += 0.05;
-      height = -4.9 * time * time + jumpHeight * time;
-      print('charPosY: $charPosY\n');
-
-      setState(() {
-        if (initialHeight - height > 1) {
-          charPosY = 1;
-          timer.cancel();
-          moonlightThiefSpriteCount = 0;
-        } else {
-          charPosY = initialHeight - height;
-          moonlightThiefSpriteCount = 1;
-        }
+  void jump({double jumpHeight = 5.0}) {
+    if(!inAir){
+      double time = 0;
+      double height = 0;
+      double initialHeight = charPosY;
+      //print('initial height: $initialHeight\n');
+      Timer.periodic(Duration(milliseconds: 70), (timer) {
+        time += 0.05;
+        height = -4.9 * time * time + jumpHeight * time;
+        //print('charPosY: $charPosY\n');
+        setState(() {
+          if (initialHeight - height > initialHeight) {
+            charPosY = 1;
+            stand1(); // After Done being in jump position, go back to standing animation
+            timer.cancel();
+          } else {
+            charPosY = initialHeight - height;
+            inAir = true;
+            charActionFrameImageCount = 1; // TODO hard coded to 1 image for jumping, make this read from the assets jump_* count later
+            charActionCurrentImageNum = 0;
+            charAction = "jump_"; // While in air, display jump action 1 with 1 frame count currently set above to 1
+          }
+        });
       });
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if(MediaQuery.of(context).orientation == Orientation.portrait){
+      movementSpeedMultiplier = 20;
+    }
+    else{
+      movementSpeedMultiplier = 10;
+    }
     return Scaffold(
       body: Column(
         children: [
           Expanded(
-            flex: 5,
+            flex: 3,
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
@@ -216,45 +221,28 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Stack(
                 children: [
-                  Container(
+
+                  Container( // Moon Thief NPC just stands
                     alignment: Alignment(moonlightThiefPosX, 1),
                     child: MySprite(
-                      frameImgNumber: moonlightThiefSpriteCount % 4, // 4 images 0-3
                       spriteDirection: moonlightThiefDirection,
-                      imagePath: 'assets/MoonlightThief/stand_$moonlightThiefSpriteCount.png',
-                      spriteImgHeight: 50,
-                      spriteImgWidth: 50,
+                      imagePath:
+                          'assets/MoonlightThief/stand_$moonlightThiefSpriteCount.png',
                     ),
                   ),
-
-                  // Container( // Create a Teddy Bear on Screen
-                  //   alignment: Alignment(teddyPosX, 1),
-                  //   child: MySprite(
-                  //     frameImgNumber: teddySpriteCount,
-                  //     spriteDirection: teddyDirection,
-                  //       imagePath: 'assets/teddy/teddy$teddySpriteCount.png',
-                  //     spriteImgHeight: 50,
-                  //     spriteImgWidth: 50,
-                  //   )
-                  //   ),
 
                   Container(
-                    alignment: Alignment(boyPosX, charPosY),
-                    child: Player(
-                      stand1SpriteCount: action_stand1_SpriteCount % 4, // 4 images 0-3 TODO Make a function to count number of stand1_* in folder
-                      walk1SpriteCount: action_walk1_SpriteCount % 5, // 5 images 0-4
-                      jumpSpriteCount: action_jump_SpriteCount, // 2 images 0-1
-                      facialExpression: facialExpression, // default, wink,
-                      boyDirection: boyDirection,
-                      action: charAction,
-                      boySpriteCount: boySpriteCount % 2 + 1,
-                      // playerSprite: MySprite(
-                      //     imagePath: 'assets/CharacterSpriteSheet/$facialExpression/0/$charAction$action_stand1_SpriteCount.png',
-                      //     spriteDirection: boyDirection,
-                      //     frameImgNumber: action_stand1_SpriteCount,
-                      //     spriteImgHeight: 100, spriteImgWidth: 100)
-                    ),
-                  ),
+                      alignment: Alignment(boyPosX, charPosY),
+                      child:
+                      MapleCharacter(
+                        facialExpression: facialExpression,
+                        frameSetFolder: "/0",
+                        action: charAction,
+                        imageNum: charActionCurrentImageNum,
+                        playerDirection: boyDirection,
+                      )
+                  )
+
                 ],
               ),
             ),
@@ -266,40 +254,85 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Container(
               color: Colors.grey[500],
-              child: Column(
+              child:
+
+              Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       MyButton(
-                        text: '↑',
-                        function: () {
-                          jump();
-                          },
-                      ),
-                      // MyButton(
-                      //   text: 'ATTACK',
-                      //   function: () {
-                      //     attack();
-                      //   },
-                      // ),
+                        verticalHeight: 10,
+                        horizontalWidth: 10,
+                        leftInset: 0.0,
+                        rightInset: 5,
+                        topInset: 0,
+                        bottomInset: 0,
+                        text: 'Smile',
+                        onTapFunction: () { facialExpression = 'smile'; },
+                        onDoubleTapFunction: () { facialExpression = 'default'; },
+                      ), /// SMILE
                       MyButton(
-                        text: 'PLAY',
-                        function: () { playNow(); },
-                      ),
+                        verticalHeight: 10,
+                        horizontalWidth: 10,
+                        leftInset: 0.0,
+                        rightInset: 5,
+                        topInset: 0,
+                        bottomInset: 0,
+                        text: 'Angry',
+                        onTapFunction: () { facialExpression = 'angry'; },
+                        onDoubleTapFunction: () { facialExpression = 'default'; },
+                      ), /// ANGRY
                       MyButton(
+                        verticalHeight: 10,
+                        horizontalWidth: 10,
+                        leftInset: 0.0,
+                        rightInset: 0,
+                        topInset: 0,
+                        bottomInset: 0,
+                        text: 'Bewildered',
+                        onTapFunction: () { facialExpression = 'bewildered'; },
+                        onDoubleTapFunction: () { facialExpression = 'default'; },
+                      ), /// Bewildered
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      MyHoldDownButton(
+                        leftInset: 0.0,
+                        rightInset: 10,
+                        topInset: 0,
+                        bottomInset: 10,
+                        text: '   ↑   ',
+                        onHoldFunction: () { jump(jumpHeight: 2.0); },
+                        onCancelHoldFunction: () { stand1(); },
+                      ), /// UP
+
+                      MyHoldDownButton(
+                        leftInset: 200.0,
+                        rightInset: 0.0,
+                        topInset: 0.0,
+                        bottomInset: 10.0,
                         text: '←',
-                        function: () { walkLeft(); },
-                      ),
-                      MyButton(
+                        onHoldFunction: () { moveLeft(); },
+                        onCancelHoldFunction: () { stand1(); charActionCurrentImageNum = 0; }, // on cancel button,
+                      ), /// LEFT <-
+                      MyHoldDownButton(
+                        leftInset: 0.0,
+                        rightInset: 0,
+                        topInset: 0,
+                        bottomInset: 10,
                         text: ' →',
-                        function: () { walkRight(); },
-                      ),
+                        onHoldFunction: () { moveRight(); },
+                        onCancelHoldFunction: () { stand1(); charActionCurrentImageNum = 0; }, // on cancel button,
+                      ), /// RIGHT->
                     ],
                   ),
                 ],
               ),
+
             ),
           ),
         ],

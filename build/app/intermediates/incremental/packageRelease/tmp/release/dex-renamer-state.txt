@@ -1,0 +1,4 @@
+#Thu Jan 05 11:22:18 PST 2023
+base.0=/Users/jair/Desktop/MapleMeeting/build/app/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

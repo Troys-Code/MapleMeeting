@@ -4,8 +4,6 @@ class MyButton extends StatelessWidget {
   final text;
   final onTapFunction;
   final onDoubleTapFunction;
-  int verticalHeight = 5; // Default Height for button
-  int horizontalWidth = 20; // Default Width of button
   double leftInset = 0.0;
   double topInset = 0.0;
   double rightInset = 10.0;
@@ -15,8 +13,6 @@ class MyButton extends StatelessWidget {
         required this.text,
         required this.onTapFunction,
         required this.onDoubleTapFunction,
-        required this.verticalHeight,
-        required this.horizontalWidth,
         required this.leftInset,
         required this.rightInset,
         required this.bottomInset,
@@ -32,15 +28,16 @@ class MyButton extends StatelessWidget {
         GestureDetector(
           onTap: onTapFunction,
           onDoubleTap: onDoubleTapFunction,
+          onHorizontalDragCancel: onTapFunction,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 3),
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               color: Colors.blue,
               child: Center(
                 child: Text(
                   text,
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Colors.white, fontSize: 6),
                 ),
               ),
             ),

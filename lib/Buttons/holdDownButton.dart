@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 
+/// IMPORTANT NOTE : flutter package hold_gesture_recognizer.dart
+///                  MUST Modify holdDownTimeMilliseconds to 16m/s for 60FPS
 class MyHoldDownButton extends StatelessWidget {
   final text;
   final onHoldFunction;
@@ -26,11 +28,11 @@ class MyHoldDownButton extends StatelessWidget {
         EdgeInsets.fromLTRB(leftInset, topInset, rightInset, bottomInset),
         child:
         HoldDetector(
-          onTap: onHoldFunction,
           onHold: onHoldFunction,
           onCancel: onCancelHoldFunction,
           enableHapticFeedback: false,
           child: ElevatedButton(
+            autofocus: true, /// Meaning if you swipe away from the button but still have your finger down that buttons still held down
             onPressed: onHoldFunction,
             child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 12),),
           ),

@@ -1,3 +1,0 @@
--keep class android.app.Application { <init>(); }
--keep class androidx.core.app.CoreComponentFactory { <init>(); }
--keep class com.app.maple_meeting.maple_meeting.MainActivity { <init>(); }

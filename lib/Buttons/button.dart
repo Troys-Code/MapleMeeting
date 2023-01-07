@@ -32,7 +32,7 @@ class MyButton extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
               color: Colors.blue,
               child: Center(
                 child: Text(
